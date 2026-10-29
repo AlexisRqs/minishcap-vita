@@ -1,0 +1,44 @@
+Minish Cap Vita prototype 0.01 — 2026-10-23
+Base: https://github.com/EstebanPdN/zelda-tmc-3ds
+Commit: 57fe1a998761d5c1021904cee3cca1067989ba5a
+Upstream lineage: samyost1/tmc-android, Project Picori (999sian/tmc),
+MatheoVignaud/tmc, zeldaret/tmc. See original legal notices.
+Audio: agbplay by ipatix and contributors (LGPL-3.0).
+Vita backend: new platform/vita code, native vita2d presentation, sceCtrl input,
+sceAudioOut output. SDK and vita2d installation reused from the user's PMD port.
+Platform3DS/TMC_3DS identifiers deliberately retain the upstream compact-console
+interface; this executable is built for Vita, not a 3DS emulator.
+Changes to original source: Vita executable-directory lookup in port_rom.c;
+disable libctru worker threads in mode1.c on Vita, using the serial renderer.
+The locally rebuilt VPK includes generated game-derived tables and artwork.
+It is private build output, not a source-only public release. The runtime also
+requires the user-supplied European cartridge image.
+
+0.02: exact -1 entity deletion sentinel comparisons for high-bit Vita pointers.
+0.03: standalone port-menu module (MIT), Minish Cap profile, Triangle modal
+pause, persistent presentation controls and synchronized audio pause/resume.
+Menu appearance and font reused from the user's PMD Vita implementation;
+PMD runtime is not imported. Font derived from PSPSDK debug font (BSD);
+see port-menu/font8x8.inc and FONT-LICENSE.txt. Existing PMD port unchanged.
+
+0.04: reusable port-menu API 2 / module 0.2, categorized options and help,
+confirmed defaults, button mappings/deadzone, versioned CRC backup rotation
+and restoration, layered menu/system pause, Vita power callbacks/audio reopen,
+profiling/export and optional first-boot file-select shortcut.
+
+0.05: LiveArea original-title assets and same-app Settings entry, following
+PMD Vita's frame3/psla:-settings and revision refresh implementation. Forest
+captured by the host renderer with title BG2/OBJ hidden for asset export only.
+Asset sources, hashes and deterministic layout script supplied. Cold launch
+opens the shared menu before AgbMain; the in-game Triangle menu is unchanged.
+
+0.06: Port Menu0.3 shared model/navigation/catalog/date with PMD0.46.
+Sorted backup slots and full dates; before-restore access with outgoing save
+archived first. Existing backup containers remain compatible.
+
+2026-10-29 source preparation: LiveArea PNGs removed from the tracked tree.
+The ROM build renders title/forest frames in an isolated host directory and
+composes shell assets locally using a stdlib PNG writer. Settings uses the
+PSPSDK BSD font from Port Menu; no system font is required. No runtime engine
+change or new hardware validation is implied. Historical PNG blobs remain in
+the private development history; publish only the audited clean snapshot.

@@ -1,0 +1,28 @@
+{
+  "upstream": "https://github.com/AlexisRqs/port-menu",
+  "commit": "b181eb6a427678b2d374c98432abf114b0330693",
+  "version": "v0.3.0",
+  "path": "platform/vita/port-menu",
+  "files": {
+    ".github/workflows/tests.yml": "0f24bc6c3a70564161b2309a39a747e3299df2f8ae6c58d9d22c1787ff404490",
+    ".gitignore": "50d8115aad6320ae5864144c8c35c36d7b1c92746c222213c638c562575f1f8a",
+    "CMakeLists.txt": "860c7d83a397f74dedcb967c5bd1af588d7c440fcacaaef637bafe6293e7e9c6",
+    "FONT-LICENSE.txt": "2a72b3d563b8e080dd2be9a963f44c8396ca615421833d3cffb6d126101c1c82",
+    "LICENSE": "ce3b2f57bfdaeb3e3440c122bd4c1909c5903b79e7d4525d658633cbf888ddae",
+    "README.md": "7c4030271b0aa0520fb0d33c1975bb3c2aff927025633a0dd938e1a805a84c9a",
+    "font8x8.inc": "735dc4fdf7c2334b4760aaab4315936b9c92ee79d9e6c855305c5ce866bd6d5d",
+    "port_backup.c": "221d5bd735431bb0ce1e284adf0ac84df393aeca218d107a35282fb1ec3ef9d3",
+    "port_backup.h": "0d772dcb35760976a32695e8d0986d805efdda5d2a5b882bd98338b79971ad81",
+    "port_menu.c": "22a496abf459500e904b640378105cebe220ccfd151a6625310bb3a1e9c2f627",
+    "port_menu.h": "76d8f5541b2b593698c8029b7578896f2217125b21eb1fe03eded1c32863e535",
+    "port_model.c": "fdd9b76ea8c85f4a928422e175c7700f825c501bd211c2003086f650f4f971a2",
+    "port_model.h": "5f3910d033dc94d70028b19056505bc88eced08df3e13db02744ba09c4450485",
+    "port_runtime.c": "4b7e80a42089fea7a92707cbe93c1abde606cf3f05323bfafae4a237b53a7c89",
+    "port_runtime.h": "6f2cef5b2488fd6577ed7daf671f4fa347312bf4e4039f8eb7178282a13a02d1",
+    "sync_port_menu.py": "cdd54a33a7dd14e4c8b3847ab0133398e6464ef76d5404236b79fa179d4f72fe",
+    "tests/menu_test.c": "11ca29655c6b85b670316f3ba4ec4ffea9f575394521117984180c0547db7ef6",
+    "tests/model_test.c": "5b372d17b34200c769ad02cc26de686b0ab0dac4d2ebaf32762d72848d03ce1c",
+    "tests/run_test.py": "cbdc2d93a2fda3c9da6066ed09107f9c562e97587d3b2f27820b8471776148a0",
+    "tests/runtime_test.c": "4fc6b2c6d5e48e47eac49f4f9895af55ebead084c29d866c4913ab4ba425ad21"
+  }
+}

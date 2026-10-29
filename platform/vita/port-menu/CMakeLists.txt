@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 3.20)
+project(port_menu VERSION 0.3.0 LANGUAGES C)
+add_library(port_menu STATIC port_menu.c port_model.c port_backup.c port_runtime.c)
+target_include_directories(port_menu PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_features(port_menu PUBLIC c_std_11)
+
+# Tests default on only when building this repository on its own.
+set(PORT_MENU_TOP_LEVEL OFF)
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+  set(PORT_MENU_TOP_LEVEL ON)
+endif()
+option(PORT_MENU_BUILD_TESTS "Build host tests" ${PORT_MENU_TOP_LEVEL})
+if(PORT_MENU_BUILD_TESTS)
+  enable_testing()
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  foreach(name menu model runtime)
+    add_executable(${name}_test tests/${name}_test.c)
+    target_compile_definitions(${name}_test PRIVATE _POSIX_C_SOURCE=200809L)
+    target_link_libraries(${name}_test PRIVATE port_menu)
+    add_test(NAME ${name} COMMAND ${Python3_EXECUTABLE}
+      ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_test.py $<TARGET_FILE:${name}_test> ${name})
+  endforeach()
+endif()
