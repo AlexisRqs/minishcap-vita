@@ -236,3 +236,6 @@ graphify-out/
 platform/vita/assets/*.png
 !tools/rom-build/livearea.py
 !tools/test_publication.py
+
+# Bundled dependency verification is maintained source.
+!tools/check_port_menu.py
