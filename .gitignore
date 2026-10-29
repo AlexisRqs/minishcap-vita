@@ -239,3 +239,5 @@ platform/vita/assets/*.png
 
 # Bundled dependency verification is maintained source.
 !tools/check_port_menu.py
+!platform/vita/port-menu/sync_port_menu.py
+!platform/vita/port-menu/tests/run_test.py
