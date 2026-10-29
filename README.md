@@ -10,7 +10,7 @@ This source-only snapshot is published for review; no validated binary release i
 
 ## Build and install
 
-Follow [REBUILD.md](docs/REBUILD.md). Clone recursively, supply the supported USA
+Follow [REBUILD.md](docs/REBUILD.md). Clone the repository, supply the supported USA
 and European ROMs, VitaSDK/libvita2d and a host SDL2 development installation.
 The macOS-tested command regenerates engine data and title artwork in a new
 external directory. No ROM, extracted data, game screenshot or VPK is tracked.

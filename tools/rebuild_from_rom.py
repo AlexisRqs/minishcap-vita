@@ -49,6 +49,7 @@ def main():
     sdk = args.sdk.resolve()
     for name in ['bin/arm-vita-eabi-gcc', 'bin/vita-elf-create', 'arm-vita-eabi/lib/libvita2d.a']:
         if not (sdk / name).is_file(): parser.error('Missing VitaSDK prerequisite: ' + name)
+    module = ROOT / 'platform/vita/port-menu'
     from check_port_menu import verify
     if verify(ROOT) != PIN: parser.error('Unexpected bundled Port Menu revision')
     workspace.mkdir(parents=True)
