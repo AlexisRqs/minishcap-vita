@@ -5,7 +5,7 @@ based on EstebanPdN/zelda-tmc-3ds at
 `57fe1a998761d5c1021904cee3cca1067989ba5a`, with Vita **0.06** adaptations.
 Maintained by AlexisRqs, developed with AI assistance. This is a curated Vita
 source tree; the full upstream multi-platform repository is not included.
-**Tests Vita en attente / Physical Vita validation pending.**
+**Physical Vita validation pending.**
 This source-only snapshot is published for review; no validated binary release is provided.
 
 ## Build and install

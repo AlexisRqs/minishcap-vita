@@ -1,52 +1,110 @@
-# Port Menu 0.3 — module commun aux portages
+# Port Menu 0.3 — shared port module
 
-C11, API `PM_API_VERSION=2`, sans dépendance à VitaSDK, SDL ou aux données des jeux. Libc POSIX (`fsync`, `access`, `rename`) nécessaire pour les fichiers. Sources MIT ; police BSD PSPSDK conservée avec sa licence. Le profil Minish Cap est dans `../vita_menu.c`. Pokémon 0.46 et Minish Cap 0.06 utilisent ce module via leurs adaptateurs respectifs.
+C11, API `PM_API_VERSION=2`, with no dependency on VitaSDK, SDL or game data.
+File operations require POSIX libc (`fsync`, `access`, `rename`). Sources use
+MIT; the PSPSDK bitmap font retains its BSD license. The Minish Cap profile is
+in `../vita_menu.c`; Pokémon and Minish Cap use their own adapters.
 
-## Intégration
+## Integration
 
-Compiler les sources utiles, ou `add_subdirectory(port-menu)` puis `target_link_libraries(mon_jeu PRIVATE port_menu)`. `port_menu.c` et `port_model.c` suffisent au menu. `port_backup.c` et `port_runtime.c` sont facultatifs et indépendants.
+Compile the required sources, or use `add_subdirectory(port-menu)` followed by
+`target_link_libraries(my_game PRIVATE port_menu)`. The menu requires
+`port_menu.c` and `port_model.c`. `port_backup.c` and `port_runtime.c` are
+optional, independent components.
 
 ```c
 static PM_Option options[] = {
  {.id="volume", .label="Volume (%)", .type=PM_RANGE,
   .value=100, .minimum=0, .maximum=100, .step=10,
-  .category="Audio", .help="Volume du jeu."},
- {.id="show_fps", .label="Afficher les FPS", .type=PM_BOOL,
+  .category="Audio", .help="Game volume."},
+ {.id="show_fps", .label="Show FPS", .type=PM_BOOL,
   .value=0, .minimum=0, .maximum=1, .step=1,
-  .category="Affichage", .help="Nombre d'images presentees par seconde."}
+  .category="Display", .help="Frames presented per second."}
 };
 static PM_Menu menu;
-if (!PM_Init(&menu, "Mon jeu", "menu.ini", options, 2, contexte)) {
-    /* Profil invalide : signaler une erreur d'integration. */
+if (!PM_Init(&menu, "My game", "menu.ini", options, 2, context)) {
+    /* Invalid profile: report an integration error. */
 }
 PM_Load(&menu);
 ```
 
-Conserver tableaux, chaînes et contexte pendant la vie du menu. Identifiants ASCII uniques et stables ; jusqu'à 32 options. `PM_BOOL`, `PM_RANGE`, `PM_CHOICE`, `PM_ACTION` ; callbacks `enabled`, `action` et confirmation facultative. `PM_Reset` rétablit les valeurs présentes lors de `PM_Init`, sans toucher aux sauvegardes du jeu. Les actions doivent gérer elles-mêmes leurs effets.
+Keep the arrays, strings and context alive for the lifetime of the menu. Use
+unique, stable ASCII identifiers; at most 32 options are supported. Types are
+`PM_BOOL`, `PM_RANGE`, `PM_CHOICE` and `PM_ACTION`, with optional `enabled`,
+`action` and confirmation callbacks. `PM_Reset` restores the values supplied
+to `PM_Init` without touching game saves. Actions manage their own effects.
 
-Toutes les options ont une catégorie non vide, ou aucune n'en a. Un profil mixte est refusé. Sans catégories, navigation plate compatible avec les anciens profils après recompilation. L'ordre de première apparition détermine l'ordre des rubriques. Pagination de sept lignes. `help` et `confirmation` affichent jusqu'à huit lignes de 28 caractères ; écrire des textes ASCII courts. Police ASCII 8x8, libellés de 16 caractères, valeurs de 8. Rendu dans un tampon RGBA8 240x160, stride >=240 ; couleurs configurables par `menu.theme` (mots ABGR).
+Either all options must have a nonempty category or none may have one. Mixed
+profiles are rejected. Without categories, navigation remains flat and supports
+older profiles after recompilation. Categories follow their first occurrence.
+Pages contain seven rows. Help and confirmation text support up to eight lines
+of 28 characters: use short ASCII text. The ASCII font is 8x8; labels support
+16 characters and values 8. Rendering targets a 240x160 RGBA8 buffer with
+stride >=240; colors in `menu.theme` are ABGR words.
 
-À une frontière sûre du moteur : suspendre la logique et le mixeur, appeler `PM_Open(menu, touches_deja_tenues)`, puis `PM_Update`/`PM_Draw` à chaque itération modale. Adapter les boutons physiques aux bits `PM_*`, indépendamment des commandes personnalisées du jeu. X valide, O revient, Triangle/Start ferme, Carré ouvre l'aide. Les confirmations et l'aide consomment d'abord la touche de retour. Après fermeture, appliquer les réglages et attendre le relâchement des commandes avant de reprendre les entrées du jeu.
+At a safe engine boundary, pause game logic and mixing, call
+`PM_Open(menu, held_buttons)`, then call `PM_Update`/`PM_Draw` in the modal loop.
+Map physical controls to `PM_*` bits independently of custom game bindings.
+Cross confirms, Circle goes back, Triangle/Start closes, and Square opens help.
+Help and confirmation dialogs consume the back input first. After closing,
+apply settings and wait for controls to be released before resuming game input.
 
-Les paramètres `port_menu=1` restent compatibles avec 0.1 : identifiants inconnus et valeurs hors bornes ignorés. Écriture `.tmp`, synchronisation, rotation `.bak`, remplacement ; récupération du `.bak` si le principal est absent ou d'en-tête invalide. En cas d'échec d'écriture, le menu reste ouvert ; Start autorise une sortie explicite sans enregistrement.
+The `port_menu=1` settings format remains compatible with 0.1. Unknown IDs and
+out-of-range values are ignored. Saving writes `.tmp`, synchronizes, rotates
+`.bak`, then replaces the main file. A missing or invalid main header triggers
+recovery from `.bak`. On write failure, the menu remains open; Start explicitly
+exits without saving.
 
-## Sauvegardes de secours
+## Save backups
 
-`PB_Store` fournit le chemin de sauvegarde, un préfixe **propre au jeu et à sa région**, sa taille fixe et un validateur facultatif. Un validateur du format réel est recommandé. Appeler `PB_Recover` au démarrage, avant que le moteur charge sa sauvegarde, mais après initialisation des données nécessaires au validateur. En cas d'échec, préserver les fichiers et interrompre le chargement.
+`PB_Store` supplies a save path, a **game- and region-specific prefix**, a fixed
+size and an optional validator. A validator for the actual save format is
+recommended. Call `PB_Recover` at startup before loading the game save, but
+after initializing any data needed by the validator. On failure, preserve the
+files and stop loading.
 
-Appeler `PB_Capture` uniquement après une sauvegarde complète, synchronisée, hors transaction. Trois slots `${prefix}.0.pmb` à `.2.pmb`, rotation par génération, déduplication de la copie la plus récente. En-tête 32 octets : magie PMBACK1, taille, CRC32 des données, génération, timestamp et CRC32 du chemin source. Ce contrôle détecte des corruptions accidentelles, ce n'est pas une authentification. Les métadonnées de date/génération ne sont pas authentifiées. `PB_InfoAt` vérifie taille et intégrité ; le validateur métier est appelé à la capture et à la restauration.
+Call `PB_Capture` only after a complete, synchronized save, outside a transaction.
+Three slots `${prefix}.0.pmb` through `.2.pmb` rotate by generation and deduplicate
+against the newest backup. The 32-byte header contains PMBACK1 magic, size,
+data CRC32, generation, timestamp and source-path CRC32. This detects accidental
+corruption; it is not authentication. Date and generation metadata are not
+authenticated. `PB_InfoAt` checks size and integrity; the game-specific validator
+runs during capture and restore.
 
-`PB_Restore` conserve le fichier actuel dans `${path}.before-restore`, valide la copie temporaire puis la remplace avec un fichier de retour arrière. Un fichier actuel est requis. Le jeu doit ensuite **fermer ou recharger entièrement son état**, pour empêcher une réécriture depuis une ancienne progression en RAM. Les backups couvrent le fichier entier, pas un emplacement individuel dans le jeu. Minish Cap ferme après confirmation ; ses trois emplacements sont restaurés ensemble. Pas de sauvegarde instantanée de la mémoire.
+`PB_Restore` preserves the current file as `${path}.before-restore`, validates
+the temporary replacement, then replaces the save with rollback protection.
+An existing current file is required. The game must then **exit or completely
+reload its state** so stale in-memory progress cannot overwrite the restored
+save. Backups cover the entire file, not one in-game save slot. Minish Cap exits
+after confirmation, and all three slots are restored together. These are not
+memory save states.
 
-Les remplacements utilisent `.tmp`, `.old` et `.restore.rollback`. `PB_Recover` récupère les rotations interrompues ; si le principal et un rollback sont présents mais que le principal échoue à la validation, il laisse les deux intacts et signale un échec. Aucun accès concurrent : l'adaptateur doit sérialiser lecture, capture et restauration. Chemins limités à 280 caractères, images à 16 Mio.
+Replacement uses `.tmp`, `.old` and `.restore.rollback`. `PB_Recover` recovers
+interrupted rotations. If both a main file and rollback exist but the main file
+fails validation, both are preserved and recovery fails. Concurrent access is
+unsupported: the adapter must serialize reading, capture and restore. Paths
+are limited to 280 characters; save images to 16 MiB.
 
-## Commandes, pause et mesures
+## Controls, pause and profiling
 
-`PR_MapButtons` traduit un masque de boutons physiques via une table d'indices vers des masques choisis par le portage ; plusieurs boutons peuvent partager une action. `PR_Stick` utilise les bits directionnels GBA (16 droite, 32 gauche, 64 haut, 128 bas) : les traduire dans l'adaptateur pour une autre convention. Axe Y positif vers le bas, zone morte par axe.
+`PR_MapButtons` maps a physical-button mask through an index table to masks
+chosen by the port. Several buttons may share an action. `PR_Stick` uses GBA
+directional bits (16 right, 32 left, 64 up, 128 down); translate them in adapters
+using another convention. Positive Y points down; dead zones apply per axis.
 
-`PR_SetPause` compose les raisons MENU et SYSTEM. Le jeu ne reprend que lorsque toutes sont levées. `PR_ReleaseInputs` bloque jusqu'à un échantillon neutre, puis autorise le suivant. Le module ne suspend pas le moteur ou le son : ces opérations appartiennent à l'adaptateur. Minish Cap enregistre un callback Vita d'alimentation, traite les notifications à une frontière sûre, réinitialise l'horloge de cadence et rouvre la sortie audio après reprise.
+`PR_SetPause` combines MENU and SYSTEM reasons. The game resumes only when all
+reasons are cleared. `PR_ReleaseInputs` blocks through a neutral input sample,
+then allows the next one. The module does not pause the engine or audio: the
+adapter does that. Minish Cap registers a Vita power callback, processes events
+at a safe boundary, resets the pacing clock and reopens audio output on resume.
 
-`PR_ProfileFrame` reçoit une horloge monotone en microsecondes, les coûts du rendu et de présentation, et un identifiant de scène. Agrégation par fenêtres d'environ une seconde, historique circulaire de 60 fenêtres, FPS, moyennes, pire durée et images >20 ms. `PR_ProfileResetClock` exclut les pauses sans effacer l'historique. `PR_ProfileExport` écrit un CSV à la demande. Le temps de présentation inclut copie et attente ; ce n'est pas une mesure GPU isolée. Les résultats hôtes ne préjugent pas des performances Vita.
+`PR_ProfileFrame` receives a monotonic microsecond clock, rendering and
+presentation costs, and a scene identifier. It aggregates roughly one-second
+windows into a 60-window ring buffer: FPS, averages, worst duration and frames
+above 20 ms. `PR_ProfileResetClock` excludes pauses without clearing history.
+`PR_ProfileExport` writes CSV on request. Presentation time includes copying
+and waiting; it is not an isolated GPU measurement. Host results do not establish
+Vita performance.
 
 ## Tests
 
@@ -58,67 +116,68 @@ mkdir -p test-output/storage
 ./runtime-test test-output/storage
 ```
 
-Utiliser un dossier neuf pour chaque exécution du test de stockage. Compatible ASan/UBSan. Tests des catégories, aide, pagination, confirmations, defaults, persistance, erreurs d'écriture, rotation, corruption, restauration, récupération, mappings, zone morte, pauses imbriquées et historique de mesures. Le test du mixeur et l'intégration Minish Cap sont dans `../tests`.
+Use a fresh directory for each storage-test run. ASan/UBSan are supported.
+Coverage includes categories, help, paging, confirmations, defaults, persistence,
+write failures, rotation, corruption, restore, recovery, mappings, dead zones,
+nested pauses and profiling history. Minish Cap mixer and integration tests
+are in `../tests`.
 
-Origine de la police : `sample/debugScreenFont.c` du portage Donjon Mystère, issu de PSPSDK ; auteurs et licence conservés dans `font8x8.inc` et `FONT-LICENSE.txt`. Licence source : https://github.com/pspdev/pspsdk/blob/master/LICENSE.
+The font originates from `sample/debugScreenFont.c` in the Mystery Dungeon
+port and ultimately PSPSDK. Author and license notices are retained in
+`font8x8.inc` and `FONT-LICENSE.txt`. Original license:
+https://github.com/pspdev/pspsdk/blob/master/LICENSE.
 
-## Ajouts 0.3 et intégration Pokémon
+## Version 0.3 and Pokémon integration
 
-`port_model.c/.h` sépare les règles d'options et de navigation de leur rendu.
-Minish Cap utilise `PM_AdjustOption` via le menu 240x160 ; Pokémon utilise la
-même fonction, ainsi que `PM_Nav`, avec son rendu Vita natif, ses onglets,
-sa traduction et son tactile. Les choix masqués sont filtrés à la navigation
-et au toucher ; le rappel d'onglet mémorise des identifiants, pas des rangs.
-Les options et valeurs propres au jeu restent dans son adaptateur. API de
-menu 2 inchangée, fonctions de modèle ajoutées ; pas de nouveau format de
-réglages. Pokémon conserve son fichier binaire et ses migrations existantes.
+`port_model.c/.h` separates option and navigation rules from rendering.
+Minish Cap uses `PM_AdjustOption` through the 240x160 menu. Pokémon uses the
+same function and `PM_Nav` with native Vita rendering, tabs, localization and
+touch controls. Hidden choices are filtered during navigation and touch input;
+tab recall stores identifiers rather than row indices. Game-specific options
+and values remain in the adapter. Menu API 2 is unchanged, with added model
+functions and no new settings format. Pokémon retains its binary settings
+file and existing migrations.
 
-`PM_SortNewest` trie les copies valides par génération décroissante, même si
-l'heure de la console change. `PM_FormatDate` produit une date complète avec
-secondes (locale de la console). Les deux jeux utilisent ces fonctions.
-Leurs formats de sauvegarde et contrôles métier restent distincts ; aucune
-conversion ni réécriture des anciennes copies n'est nécessaire.
+`PM_SortNewest` sorts valid backups by descending generation even if the console
+clock changes. `PM_FormatDate` includes seconds using the console locale. Both
+games use these functions. Save formats and game-specific validation remain
+separate; existing backups need no conversion or rewrite.
 
-Minish Cap expose `PB_List` (infos et slots physiques triés) : toujours
-restaurer le slot retourné, jamais le rang de la ligne affichée. Les actions
-du menu utilisent maintenant une ligne entière, pour rendre les dates lisibles.
-`PB_PreviousInfo` valide la copie raw `.before-restore`, compatible avec 0.04/0.05.
-`PB_RestorePrevious` conserve d'abord la sauvegarde actuelle dans la rotation,
-restaure cette copie raw et laisse `.before-restore` intact. Si la copie de
-sécurité échoue, la sauvegarde actuelle n'est pas remplacée. Fermer le jeu
-après réussite, comme pour `PB_Restore`. Le timestamp de ce fichier indique
-sa mise de côté, pas nécessairement la date de progression dans le jeu.
+Minish Cap exposes `PB_List` with information and sorted physical slots: restore
+the returned slot, never the displayed row index. Menu actions occupy a full
+row to keep dates readable. `PB_PreviousInfo` validates the raw `.before-restore`
+copy compatible with 0.04/0.05. `PB_RestorePrevious` first captures the current
+save in the rotation, restores the raw copy and leaves `.before-restore` intact.
+If capture fails, the current save is not replaced. Exit after success, as for
+`PB_Restore`. The timestamp records when the file was set aside, which may not
+be the date of the in-game progress.
 
-Le test `tests/model_test.c`, compilé avec `port_model.c`, couvre navigation,
-options cachées, groupes vides, bornes et choix circulaires. Les adaptateurs
-Pokémon ajoutent des tests différentiels contre 0.45, du rendu et du tactile.
-Les tests de stockage couvrent aussi le retour avant restauration et la
-récupération d'un remplacement interrompu de `.before-restore`.
+`tests/model_test.c`, compiled with `port_model.c`, covers navigation, hidden
+options, empty groups, bounds and wraparound choices. Pokémon adapters add
+differential tests against 0.45, rendering and touch tests. Storage tests also
+cover returning to the pre-restore save and recovering an interrupted replacement
+of `.before-restore`.
 
-## Dépôt autonome et versions figées
+## Bundled source and pinned revisions
 
-La source commune est https://github.com/AlexisRqs/port-menu (dépôt privé).
-La première version extraite est `v0.3.0`. Le code C et la police sont identiques
-à la livraison 0.3 ; l'extraction ajoute les tests CMake et l'intégration Git.
-Chaque portage enregistre un commit précis via son sous-module. Les adaptateurs,
-options et formats de sauvegarde spécifiques restent dans les jeux.
+The shared development repository is https://github.com/AlexisRqs/port-menu
+(private). The first extracted version is `v0.3.0`, based on the 0.3 C code and
+font, with CMake tests and Git integration added. These public ports bundle the
+source directly; **no private-repository access or submodule initialization is
+required**. Game-specific adapters, options and save formats remain in the ports.
+
+This README is translated and updated for the bundled distribution. The runtime
+sources, font and licenses are unchanged. The parent repository's
+`tools/port-menu-source.json` records the upstream revision and current file
+hashes, including documentation-only changes. Verify from the parent root:
 
 ```sh
-git clone --recurse-submodules URL_DU_PORTAGE
-# Après un pull du portage :
-git submodule update --init --recursive
-# Mise à jour volontaire, depuis le portage :
-git -C CHEMIN_DU_MODULE fetch origin --tags
-git -C CHEMIN_DU_MODULE checkout --detach v0.3.0
-# Tester/recompiler le portage, puis enregistrer le nouveau pointeur :
-git add CHEMIN_DU_MODULE
-git commit -m "Update port-menu to v0.3.0"
+python3 tools/check_port_menu.py
 ```
 
-Ne pas utiliser `submodule update --remote` pour un build reproductible.
-Ne pas modifier la copie embarquée : développer dans le dépôt autonome,
-publier une version, puis mettre à jour chaque portage séparément.
-L'accès GitHub au dépôt privé est requis pour initialiser les sous-modules.
+Develop shared code in the standalone repository, then review, test and update
+each bundled snapshot and its manifest deliberately. Do not replace a pinned
+snapshot with an unreviewed moving branch. From this module directory:
 
 ```sh
 cmake -S . -B build -DPORT_MENU_BUILD_TESTS=ON
@@ -126,10 +185,7 @@ cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
 
-Les tests utilisent des dossiers temporaires distincts. Ils peuvent être relancés.
-Les builds des jeux qui emploient `add_subdirectory` n'activent pas les tests
-par défaut. Les distributions de sources doivent inclure les fichiers du
-sous-module : `git archive` du dépôt parent seul ne les inclut pas.
-
-`sync_port_menu.py` est conservé pour les anciennes copies sans Git. Il exclut
-les métadonnées Git et refuse d'écraser un checkout Git avec `--write`.
+Tests use separate temporary directories and can be rerun. Game builds using
+`add_subdirectory` leave tests disabled by default. Source archives include the
+bundled files. `sync_port_menu.py` remains for legacy non-Git copies: it excludes
+Git metadata and refuses to overwrite a Git checkout with `--write`.

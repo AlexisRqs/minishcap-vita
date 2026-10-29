@@ -9,7 +9,7 @@
     "CMakeLists.txt": "860c7d83a397f74dedcb967c5bd1af588d7c440fcacaaef637bafe6293e7e9c6",
     "FONT-LICENSE.txt": "2a72b3d563b8e080dd2be9a963f44c8396ca615421833d3cffb6d126101c1c82",
     "LICENSE": "ce3b2f57bfdaeb3e3440c122bd4c1909c5903b79e7d4525d658633cbf888ddae",
-    "README.md": "7c4030271b0aa0520fb0d33c1975bb3c2aff927025633a0dd938e1a805a84c9a",
+    "README.md": "ca09f642b5af87b1529640ea387e28a0b612dc184d058c312735f9b3bcd71670",
     "font8x8.inc": "735dc4fdf7c2334b4760aaab4315936b9c92ee79d9e6c855305c5ce866bd6d5d",
     "port_backup.c": "221d5bd735431bb0ce1e284adf0ac84df393aeca218d107a35282fb1ec3ef9d3",
     "port_backup.h": "0d772dcb35760976a32695e8d0986d805efdda5d2a5b882bd98338b79971ad81",
@@ -24,5 +24,11 @@
     "tests/model_test.c": "5b372d17b34200c769ad02cc26de686b0ab0dac4d2ebaf32762d72848d03ce1c",
     "tests/run_test.py": "cbdc2d93a2fda3c9da6066ed09107f9c562e97587d3b2f27820b8471776148a0",
     "tests/runtime_test.c": "4fc6b2c6d5e48e47eac49f4f9895af55ebead084c29d866c4913ab4ba425ad21"
+  },
+  "documentation_changes": {
+    "README.md": {
+      "upstream_sha256": "7c4030271b0aa0520fb0d33c1975bb3c2aff927025633a0dd938e1a805a84c9a",
+      "change": "English translation and corrected bundled-distribution instructions; runtime sources unchanged."
+    }
   }
 }

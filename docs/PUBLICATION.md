@@ -1,10 +1,10 @@
 # Source publication status
 
-**Tests Vita en attente / Physical Vita validation pending.**
+**Physical Vita validation pending.**
 
 The maintainer authorized public source publication on 2026-10-29. This repository
 starts from the audited source-only snapshot. Earlier development history, pull
-requests and logs remain in a separate private archive. Port Menu v0.3.0 sources
+requests and logs remain in a separate private archive. Port Menu v0.3.0 runtime sources
 are bundled with their notices and checked hashes; no private submodule is needed.
 
 Local reconstruction and automated checks passed before publication. They do not
